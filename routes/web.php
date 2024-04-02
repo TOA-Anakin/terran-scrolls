@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +14,38 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Auth
+Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    ->name('login')
+    ->middleware('guest');
+
+Route::get('register', [AuthenticatedSessionController::class, 'register'])
+    ->name('register')
+    ->middleware('guest');
+
+Route::get('password-reset', [AuthenticatedSessionController::class, 'forgotPassword'])
+    ->name('password.reset')
+    ->middleware('guest');
+
+Route::post('password-reset-email', [AuthenticatedSessionController::class, 'forgotPasswordMail'])
+    ->name('password.reset.email')
+    ->middleware('guest');
+
+Route::get('password-reset/{token}', [AuthenticatedSessionController::class, 'forgotPasswordToken'])
+    ->name('password.reset.token')
+    ->middleware('guest');
+
+Route::post('password-reset-confirm', [AuthenticatedSessionController::class, 'forgotPasswordStore'])
+    ->name('password.reset.store')
+    ->middleware('guest');
+
+Route::post('login', [AuthenticatedSessionController::class, 'store'])
+    ->name('login.store')
+    ->middleware('guest');
+
+Route::post('register', [AuthenticatedSessionController::class, 'registerStore'])
+    ->name('register.store')
+    ->middleware('guest');
+
+Route::delete('logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->name('logout');

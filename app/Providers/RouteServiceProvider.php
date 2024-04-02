@@ -17,7 +17,16 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/home';
+    public const HOME = '/';
+
+    /**
+     * The path to your application's "dashboard" route.
+     *
+     * This is the route users are redirected to when they visit the root of the application.
+     *
+     * @var string
+     */
+    public const DASHBOARD = '/';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
