@@ -20,11 +20,13 @@ class Attachment extends Model
         return $this->hasOne(Task::class);
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function comment(){
+    public function comment()
+    {
         return $this->belongsTo(Comment::class, 'comment_id');
     }
 
@@ -33,7 +35,8 @@ class Attachment extends Model
         $query->orderBy('name');
     }
 
-    public function getCreatedAtAttribute($date){
+    public function getCreatedAtAttribute($date)
+    {
         return Carbon::parse($date)->format('Y-m-d H:i:s');
     }
 }

@@ -25,10 +25,11 @@ class AuthenticatedSessionController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function create() {
-        $is_demo = (int)config('app.demo');
-        $enable_registration = Setting::where('slug', 'enable_registration')->first();
-        return Inertia::render('Auth/Login', ['is_demo' => $is_demo, 'enable_registration' => $enable_registration]);
+    public function create()
+    {
+        $isDemo = (int)config('app.demo');
+        $enableRegistration = Setting::where('slug', 'enable_registration')->first();
+        return Inertia::render('Auth/Login', ['is_demo' => $isDemo, 'enable_registration' => $enableRegistration]);
     }
 
     /**
@@ -36,9 +37,10 @@ class AuthenticatedSessionController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function register() {
-        $is_demo = (int)config('app.demo');
-        return Inertia::render('Auth/Register', ['is_demo' => $is_demo]);
+    public function register()
+    {
+        $isDemo = (int)config('app.demo');
+        return Inertia::render('Auth/Register', ['is_demo' => $isDemo]);
     }
 
     /**
@@ -46,9 +48,10 @@ class AuthenticatedSessionController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function forgotPassword() {
-        $is_demo = (int)config('app.demo');
-        return Inertia::render('Auth/ForgotPassword', ['is_demo' => $is_demo]);
+    public function forgotPassword()
+    {
+        $isDemo = (int)config('app.demo');
+        return Inertia::render('Auth/ForgotPassword', ['is_demo' => $isDemo]);
     }
 
     /**
@@ -57,7 +60,8 @@ class AuthenticatedSessionController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function forgotPasswordMail(Request $request) {
+    public function forgotPasswordMail(Request $request)
+    {
         $requestData = $request->validate(['email' => 'required|email|exists:users']);
 
         $token = Str::random(64);
@@ -78,7 +82,8 @@ class AuthenticatedSessionController extends Controller
      * @param $token
      * @return \Inertia\Response
      */
-    public function forgotPasswordToken($token){
+    public function forgotPasswordToken($token)
+    {
         return Inertia::render('Auth/ForgotPasswordInput', ['token' => $token]);
     }
 
@@ -88,7 +93,8 @@ class AuthenticatedSessionController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function forgotPasswordStore(Request $request){
+    public function forgotPasswordStore(Request $request)
+    {
         $requestData = $request->validate([
             'email' => 'required|email|exists:users',
             'password' => 'required|string|min:6|confirmed',
@@ -103,16 +109,15 @@ class AuthenticatedSessionController extends Controller
             ])
             ->first();
 
-        if(!$updatePassword){
+        if (!$updatePassword) {
             return Redirect::back()->with('error', 'Invalid email or token!');
         }
 
         User::where('email', $requestData['email'])->update(['password' => Hash::make($requestData['password'])]);
 
-        DB::table('password_resets')->where(['email'=> $requestData['email']])->delete();
+        DB::table('password_resets')->where(['email' => $requestData['email']])->delete();
 
         return Redirect::route('login')->with('success', 'Your password has been changed!');
-
     }
 
     /**
@@ -133,7 +138,8 @@ class AuthenticatedSessionController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function registerStore(Request $request) {
+    public function registerStore(Request $request)
+    {
 
         $requestData = $request->validate([
             'first_name' => ['required', 'max:50'],
@@ -147,9 +153,9 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         $role = Role::where('slug', 'normal')->first();
-        if(!empty($role)){
+        if (!empty($role)) {
             $requestData['role_id'] = $role->id;
-        }else{
+        } else {
             $requestData['role_id'] = 2;
         }
 

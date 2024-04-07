@@ -11,7 +11,8 @@ class Repeat extends Model
 
     protected $table = 'repeats';
 
-    public function task(){
+    public function task()
+    {
         return $this->belongsTo(Task::class, 'task_id');
     }
 }

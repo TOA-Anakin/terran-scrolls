@@ -9,42 +9,48 @@ class Timer extends Model
 {
     use HasFactory;
 
-    public function scopeByTask($query, $id) {
-        if(!empty($id)){
+    public function scopeByTask($query, $id)
+    {
+        if (!empty($id)) {
             $query->where('task_id', $id);
         }
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function scopeMine($query) {
+    public function scopeMine($query)
+    {
         return $query->where('user_id', auth()->id());
     }
 
-    public function scopeRunning($query) {
+    public function scopeRunning($query)
+    {
         return $query->whereNull('stopped_at');
-     }
+    }
 
-    public function task(){
+    public function task()
+    {
         return $this->belongsTo(Task::class, 'task_id');
     }
 
-    public function scopeFilter($query, array $filters){
+    public function scopeFilter($query, array $filters)
+    {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->whereHas('task', function ($q) use ($search) {
-                    $q->where('title', 'like', '%'.$search.'%');
+                    $q->where('title', 'like', '%' . $search . '%');
                 })->orWhereHas('user', function ($q) use ($search) {
-                    $q->where('first_name', 'like', '%'.$search.'%');
+                    $q->where('first_name', 'like', '%' . $search . '%');
                 })->orWhereHas('user', function ($q) use ($search) {
-                    $q->where('last_name', 'like', '%'.$search.'%');
+                    $q->where('last_name', 'like', '%' . $search . '%');
                 });
             });
         })->when($filters['user'] ?? null, function ($query, $user) {
-            $f_users = explode(',', $user);
-            $query->whereIn('user_id', $f_users);
+            $fUsers = explode(',', $user);
+            $query->whereIn('user_id', $fUsers);
         });
     }
 }

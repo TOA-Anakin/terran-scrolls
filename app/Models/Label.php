@@ -12,14 +12,16 @@ class Label extends Model
     protected $table = 'labels';
     public $timestamps = false;
 
-    public function taskLabels(){
+    public function taskLabels()
+    {
         return $this->hasMany(TaskLabel::class, 'label_id');
     }
 
-    public function scopeFilter($query, array $filters){
+    public function scopeFilter($query, array $filters)
+    {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('name', 'like', '%'.$search.'%');
+                $query->where('name', 'like', '%' . $search . '%');
             });
         });
     }

@@ -28,14 +28,15 @@ class WorkSpacesController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function index() {
-        $user_id = auth()->id();
+    public function index()
+    {
+        $userId = auth()->id();
 
-        $workspaceIds = Workspace::where('user_id', $user_id)
+        $workspaceIds = Workspace::where('user_id', $userId)
             ->orWhereHas('member')
             ->pluck('id');
 
-        $project = RecentProject::where('user_id', $user_id)
+        $project = RecentProject::where('user_id', $userId)
             ->with('project')
             ->has('project.workspace')
             ->whereHas('project', function ($q) use ($workspaceIds) {
@@ -56,7 +57,7 @@ class WorkSpacesController extends Controller
             return Redirect::route('projects.view.board', $project->slug ?: $project->id);
         }
 
-        $assignee = Assignee::where('user_id', $user_id)
+        $assignee = Assignee::where('user_id', $userId)
             ->whereHas('task')
             ->with('task')
             ->first();
@@ -73,9 +74,10 @@ class WorkSpacesController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonAll() {
-        $user_id = auth()->id();
-        $workSpaces = Workspace::where('user_id', $user_id)
+    public function jsonAll()
+    {
+        $userId = auth()->id();
+        $workSpaces = Workspace::where('user_id', $userId)
             ->orWhereHas('member')
             ->with('member')
             ->get()
@@ -89,7 +91,8 @@ class WorkSpacesController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonMineAll() {
+    public function jsonMineAll()
+    {
         $myWorkspaces = Workspace::where('user_id', auth()->id())
             ->limit(50)
             ->get()
@@ -104,7 +107,8 @@ class WorkSpacesController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonCreate(Request $request) {
+    public function jsonCreate(Request $request)
+    {
         $requests = $request->all();
         $requests['user_id'] = auth()->id();
         $workspace = Workspace::create($requests);
@@ -134,7 +138,8 @@ class WorkSpacesController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonChangeWorkspace(Request $request) {
+    public function jsonChangeWorkspace(Request $request)
+    {
         $requestData = $request->all();
         $project = Project::where('id', $requestData['project_id'])->first();
         $project->workspace_id = $requestData['workspace_id'];
@@ -150,7 +155,8 @@ class WorkSpacesController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonUpdateWorkspace($id, Request $request) {
+    public function jsonUpdateWorkspace($id, Request $request)
+    {
         $requestData = $request->all();
         $workspace = Workspace::where('id', $id)->first();
 
@@ -169,13 +175,14 @@ class WorkSpacesController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonAddMember(Request $request) {
+    public function jsonAddMember(Request $request)
+    {
         $requestData = $request->all();
         $teamMember = TeamMember::where(['workspace_id' => $requestData['workspace_id'], 'user_id' => $requestData['user_id']])->first();
 
         if (!empty($teamMember)) {
             $teamMember->delete();
-            $teamMember = ['success' => true ];
+            $teamMember = ['success' => true];
         } else {
             $requestData['added_by'] = auth()->id();
             $teamMember = TeamMember::create($requestData);
@@ -191,7 +198,8 @@ class WorkSpacesController extends Controller
      * @param string $uid
      * @return \Inertia\Response
      */
-    public function workspaceView($uid) {
+    public function workspaceView($uid)
+    {
         $workspace = Workspace::whereId($uid)
             ->orWhere('slug', $uid)
             ->whereHas('member')
@@ -217,7 +225,8 @@ class WorkSpacesController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
-    public function workspaceMembers($uid, Request $request) {
+    public function workspaceMembers($uid, Request $request)
+    {
         $workspace = Workspace::whereId($uid)
             ->orWhere('slug', $uid)
             ->whereHas('member')
@@ -234,25 +243,25 @@ class WorkSpacesController extends Controller
             ->get();
 
         return Inertia::render('Workspaces/Members', [
-            'title' => 'Members | '.$workspace->name,
+            'title' => 'Members | ' . $workspace->name,
             'workspace' => $workspace,
             'projects' => $projects,
             'team_members' => TeamMember::where('workspace_id', $workspace->id)
-                                ->filter($request->only('search'))
-                                ->orderBy('created_at', 'DESC')
-                                ->paginate(10)
-                                ->withQueryString()
-                                ->through(function ($member) {
-                                    return [
-                                        'id' => $member->id,
-                                        'name' => $member->user->first_name . ' ' .$member->user->last_name,
-                                        'photo' => $member->user->photo_path,
-                                        'role' => $member->role,
-                                        'workspace_id' => $member->workspace_id,
-                                        'user_id' => $member->user_id,
-                                        'created_at' => $member->created_at,
-                                    ];
-                                }),
+                ->filter($request->only('search'))
+                ->orderBy('created_at', 'DESC')
+                ->paginate(10)
+                ->withQueryString()
+                ->through(function ($member) {
+                    return [
+                        'id' => $member->id,
+                        'name' => $member->user->first_name . ' ' . $member->user->last_name,
+                        'photo' => $member->user->photo_path,
+                        'role' => $member->role,
+                        'workspace_id' => $member->workspace_id,
+                        'user_id' => $member->user_id,
+                        'created_at' => $member->created_at,
+                    ];
+                }),
         ]);
     }
 
@@ -263,7 +272,8 @@ class WorkSpacesController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse | \Inertia\Response|\Illuminate\Http\Response
      */
-    public function workspaceTables($uid, Request $request) {
+    public function workspaceTables($uid, Request $request)
+    {
         $user = auth()->user()->load('role');
 
         $requests = $request->all();
@@ -276,8 +286,8 @@ class WorkSpacesController extends Controller
             return abort(404);
         }
 
-        $list_index = [];
-        $board_lists = BoardList::orderByOrder()->get();
+        $listIndex = [];
+        $boardLists = BoardList::orderByOrder()->get();
         $workspace = Workspace::where('id', $uid)
             ->orWhere('slug', $uid)
             ->whereHas('member')
@@ -285,17 +295,17 @@ class WorkSpacesController extends Controller
             ->first();
 
         $loopIndex = 0;
-        foreach ($board_lists as &$listItem) {
-            $list_index[$listItem->id] = $loopIndex;
+        foreach ($boardLists as &$listItem) {
+            $listIndex[$listItem->id] = $loopIndex;
             $listItem['tasks'] = [];
             $loopIndex += 1;
         }
 
         return Inertia::render('Workspaces/Table', [
-            'title' => 'Tasks | '.$workspace->name,
-            'board_lists' => $board_lists,
+            'title' => 'Tasks | ' . $workspace->name,
+            'board_lists' => $boardLists,
             'filters' => $requests,
-            'list_index' => $list_index,
+            'list_index' => $listIndex,
             'workspace' => $workspace,
             'tasks' => Task::filter($requests)->whereHas('project', function ($q) use ($workspace) {
                 $q->where('workspace_id', $workspace->id);
@@ -313,11 +323,12 @@ class WorkSpacesController extends Controller
     /**
      * Get other users in a workspace.
      *
-     * @param int $workspace_id
+     * @param int $workspaceId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getOtherUsers($workspace_id) {
-        $workspaceUsers = TeamMember::where('workspace_id', $workspace_id)->groupBy('user_id')->pluck('user_id');
+    public function getOtherUsers($workspaceId)
+    {
+        $workspaceUsers = TeamMember::where('workspace_id', $workspaceId)->groupBy('user_id')->pluck('user_id');
         $users = User::select('id', 'first_name', 'last_name', 'photo_path')->where('id', '!=', auth()->id())->get();
 
         return response()->json(['users' => $users, 'workspace_users' => $workspaceUsers]);
@@ -329,7 +340,8 @@ class WorkSpacesController extends Controller
      * @param string $string
      * @return string
      */
-    private function clean($string) {
+    private function clean($string)
+    {
         $string = str_replace(' ', '-', $string);
         $string = preg_match("/[a-z]/i", $string) ? $string : 'untitled';
         $string = preg_replace('/[^A-Za-z0-9\-]/', '', $string);
@@ -343,7 +355,8 @@ class WorkSpacesController extends Controller
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         $workspace = Workspace::where('id', $id)->first();
         $workspace->delete();
         TeamMember::where('workspace_id', $id)->delete();

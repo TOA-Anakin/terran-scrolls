@@ -10,26 +10,31 @@ class Task extends Model
 {
     use HasFactory;
 
-    public function resolveRouteBinding($value, $field = null) {
+    public function resolveRouteBinding($value, $field = null)
+    {
         return $this->where($field ?? 'id', $value)->firstOrFail();
     }
 
-    public function scopeByUser($query, $id) {
-        if(!empty($id)){
+    public function scopeByUser($query, $id)
+    {
+        if (!empty($id)) {
             $query->where('user_id', $id);
         }
     }
 
-    public function scopeOrderByOrder($query) {
+    public function scopeOrderByOrder($query)
+    {
         $query->orderBy('order');
     }
 
-    public function scopeIsOpen($query) {
+    public function scopeIsOpen($query)
+    {
         $query->where('is_archive', 0);
     }
 
-    public function scopeByProject($query, $id) {
-        if(!empty($id)){
+    public function scopeByProject($query, $id)
+    {
+        if (!empty($id)) {
             $query->where('project_id', $id);
         }
     }
@@ -49,94 +54,103 @@ class Task extends Model
         return $this->belongsTo(Attachment::class, 'cover');
     }
 
-    public function checklists() {
+    public function checklists()
+    {
         return $this->hasMany(CheckList::class);
     }
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
     }
 
-    public function timers() {
+    public function timers()
+    {
         return $this->hasMany(Timer::class)->where('user_id', auth()->id());
     }
 
-    public function timer() {
+    public function timer()
+    {
         return $this->hasOne(Timer::class, 'task_id')->where('user_id', auth()->id())->whereNull('stopped_at');
     }
 
-    public function assignees() {
+    public function assignees()
+    {
         return $this->hasMany(Assignee::class)->with('user');
     }
 
-    public function lastAssignee() {
+    public function lastAssignee()
+    {
         return $this->hasMany(Assignee::class)->latest('id')->limit(1);
     }
 
-    public function taskLabels() {
+    public function taskLabels()
+    {
         return $this->hasMany(TaskLabel::class, 'task_id');
     }
 
-    public function attachments() {
+    public function attachments()
+    {
         return $this->hasMany(Attachment::class);
     }
 
-    public function checklistDone(){
+    public function checklistDone()
+    {
         return $this->hasMany(CheckList::class)->where('check_lists.is_done', '=', 1);
     }
 
-    public function scopeFilter($query, array $filters){
+    public function scopeFilter($query, array $filters)
+    {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('title', 'like', '%'.$search.'%');
+                $query->where('title', 'like', '%' . $search . '%');
             });
         })->when($filters['user'] ?? null, function ($query, $user) {
-            $f_users = explode(',', $user);
-            $includeTasks = Assignee::whereIn('user_id', $f_users)->groupBy('task_id')->pluck('task_id');
-            if(in_array('null', $f_users)){
+            $fUsers = explode(',', $user);
+            $includeTasks = Assignee::whereIn('user_id', $fUsers)->groupBy('task_id')->pluck('task_id');
+            if (in_array('null', $fUsers)) {
                 $excludeTask = Assignee::groupBy('task_id')->pluck('task_id');
                 $query->whereNotIn('id', $excludeTask)->orWhereIn('id', $includeTasks);
-            }else{
+            } else {
                 $query->whereIn('id', $includeTasks);
             }
-        })->when($filters['private_task'] ?? null, function ($query, $private_task) {
-            $includeTasks = Assignee::where('user_id', $private_task)->groupBy('task_id')->pluck('task_id');
+        })->when($filters['private_task'] ?? null, function ($query, $privateTask) {
+            $includeTasks = Assignee::where('user_id', $privateTask)->groupBy('task_id')->pluck('task_id');
             $query->whereIn('id', $includeTasks);
         })->when($filters['label'] ?? null, function ($query, $label) {
-            $f_labels = explode(',', $label);
-            $includeTasks = TaskLabel::whereIn('label_id', $f_labels)->groupBy('task_id')->pluck('task_id');
+            $fLabels = explode(',', $label);
+            $includeTasks = TaskLabel::whereIn('label_id', $fLabels)->groupBy('task_id')->pluck('task_id');
             $query->whereIn('id', $includeTasks);
         })->when($filters['range'] ?? null, function ($query, $filters) {
             $start = $filters['range']['start'] ?? date("Y-m-d H:i:s", strtotime('monday this week'));
             $end = $filters['range']['end'] ?? date("Y-m-d H:i:s", strtotime('sunday this week 23:59'));
-//            dd($start, $end);
-//            $query->whereDate('date', '>=', $start)->whereDate('date', '<=', $end);
+            //            dd($start, $end);
+            //            $query->whereDate('date', '>=', $start)->whereDate('date', '<=', $end);
             $query->whereBetween('created_at', [$start, $end])->orWhereBetween('due_date', [$start, $end]);
-//            $query->where([['created_at', '>=', $start], ['created_at', '>=', $end]])->orWhere([['due_date', '>=', $start], ['due_date', '>=', $end]]);
-//            $query->orderBy('created_at', 'asc');
+            //            $query->where([['created_at', '>=', $start], ['created_at', '>=', $end]])->orWhere([['due_date', '>=', $start], ['due_date', '>=', $end]]);
+            //            $query->orderBy('created_at', 'asc');
         })->when($filters['due'] ?? null, function ($query, $due) {
-            $due_dates = explode(',', $due);
-            if(in_array('over', $due_dates)){
+            $dueDates = explode(',', $due);
+            if (in_array('over', $dueDates)) {
                 $query->where([
                     ['is_done', '0', 0],
                     ['due_date', '<', Carbon::now()]
                 ]);
             }
-            if(in_array('next_day', $due_dates)){
-                if(in_array('over', $due_dates)){
+            if (in_array('next_day', $dueDates)) {
+                if (in_array('over', $dueDates)) {
                     $query->orWhereBetween('due_date', [Carbon::now(), Carbon::now()->addDay()]);
-                }else{
+                } else {
                     $query->whereBetween('due_date', [Carbon::now(), Carbon::now()->addDay()]);
                 }
             }
-            if(in_array('null', $due_dates)){
-                if(in_array('over', $due_dates) || in_array('next_day', $due_dates)){
+            if (in_array('null', $dueDates)) {
+                if (in_array('over', $dueDates) || in_array('next_day', $dueDates)) {
                     $query->orWhereNull('due_date');
-                }else{
+                } else {
                     $query->whereNull('due_date');
                 }
             }
         });
     }
 }
-

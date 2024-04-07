@@ -12,10 +12,12 @@ class TaskLabel extends Model
     protected $table = 'task_labels';
     public $timestamps = false;
 
-    public function task(){
+    public function task()
+    {
         return $this->belongsTo(Task::class, 'task_id');
     }
-    public function label(){
+    public function label()
+    {
         return $this->belongsTo(Label::class, 'label_id');
     }
 }

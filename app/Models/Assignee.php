@@ -12,15 +12,18 @@ class Assignee extends Model
 
     public $timestamps = false;
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function projectWhere($id){
+    public function projectWhere($id)
+    {
         return $this->belongsTo(Task::class, 'task_id')->where('project_id', $id);
     }
 
-    public function task(){
+    public function task()
+    {
         return $this->belongsTo(Task::class, 'task_id');
     }
 }
