@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Helpers\StringHelper;
 use App\Models\Background;
 use App\Models\Project;
 use App\Models\User;
@@ -27,7 +28,7 @@ class SetWorkspaceSeeder extends Seeder
 
         $workspace = Workspace::factory()->create([
             'name' => 'Super Dev Team',
-            'slug' => $this->clean('Super Dev Team'),
+            'slug' => StringHelper::sanitizeForSlug('Super Dev Team'),
             'user_id' => $user->id
         ]);
 
@@ -41,24 +42,10 @@ class SetWorkspaceSeeder extends Seeder
 
         Project::factory()->create([
             'title' => $projectTitle,
-            'slug' => $this->clean($projectTitle),
+            'slug' => StringHelper::sanitizeForSlug($projectTitle),
             'user_id' => $user->id,
             'background_id' => $backgrounds->random()->id,
             'workspace_id' => $workspace->id
         ]);
-    }
-
-    /**
-     * Clean the string
-     *
-     * @param string $string
-     * @return string
-     */
-    private function clean($string) {
-        $string = str_replace(' ', '-', $string);
-        $string = preg_match("/[a-z]/i", $string) ? $string : 'untitled';
-        $string = preg_replace('/[^A-Za-z0-9\-]/', '', $string);
-
-        return preg_replace('/-+/', '-', $string);
     }
 }

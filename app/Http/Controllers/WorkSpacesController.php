@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\StringHelper;
 use App\Models\Assignee;
 use App\Models\Attachment;
 use App\Models\BoardList;
@@ -112,7 +113,7 @@ class WorkSpacesController extends Controller
         $requests = $request->all();
         $requests['user_id'] = auth()->id();
         $workspace = Workspace::create($requests);
-        $slug = $this->clean($workspace->name);
+        $slug = StringHelper::sanitizeForSlug($workspace->name);
         $existingItem = Workspace::where('slug', $slug)->first();
 
         if (!empty($existingItem)) {
@@ -332,21 +333,6 @@ class WorkSpacesController extends Controller
         $users = User::select('id', 'first_name', 'last_name', 'photo_path')->where('id', '!=', auth()->id())->get();
 
         return response()->json(['users' => $users, 'workspace_users' => $workspaceUsers]);
-    }
-
-    /**
-     * Clean and format a string.
-     *
-     * @param string $string
-     * @return string
-     */
-    private function clean($string)
-    {
-        $string = str_replace(' ', '-', $string);
-        $string = preg_match("/[a-z]/i", $string) ? $string : 'untitled';
-        $string = preg_replace('/[^A-Za-z0-9\-]/', '', $string);
-
-        return preg_replace('/-+/', '-', $string);
     }
 
     /**

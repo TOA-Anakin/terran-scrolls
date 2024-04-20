@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\StarredProjectsController;
+use App\Http\Controllers\TasksController;
 use App\Http\Controllers\WorkSpacesController;
 use Illuminate\Support\Facades\Route;
 
@@ -142,4 +143,30 @@ Route::middleware(['auth'])->group(function () {
 
     // STARRED PROJECTS
     Route::post('json/p/starred/save/{projectId}', [StarredProjectsController::class, 'toggleStarred'])->name('json.p.starred.save');
+
+    // TASKS
+    Route::post('task/create', [TasksController::class, 'createTask'])->name('task.create');
+
+    Route::post('task/update/{taskId}', [TasksController::class, 'updateTask'])->name('task.update');
+
+    Route::post('task/update/order', [TasksController::class, 'updateTaskOrder'])->name('task.update.order');
+
+    Route::post('task/update/list/{projectId}', [TasksController::class, 'updateTaskListByProjectId'])->name('task.update.list');
+
+    Route::post('task/delete/{id}', [TasksController::class, 'deleteDask'])->name('task.delete');
+
+    Route::post('task/attachment/add/{id}', [TasksController::class, 'addAttachment'])->name('task.attachment.add');
+
+    Route::post('task/attachment/delete/{id}', [TasksController::class, 'removeAttachment'])->name('task.attachment.delete');
+
+    Route::get('task/list/count/{id}', [TasksController::class, 'countListItemsById'])->name('task.list.count');
+
+    Route::get('task/other/data/{taskId}/{projectId}', [TasksController::class, 'taskOtherData'])->name('task.other.data');
+
+
+    // TASKS - JSON routes
+    Route::get('json/task/get/{taskId}', [TasksController::class, 'jsonGetTask'])->name('json.task.get');
+
+    Route::get('json/menu_data/tasks/{projectId}', [TasksController::class, 'jsonArchiveTasks'])->name('json.menu_data.tasks');
+
 });

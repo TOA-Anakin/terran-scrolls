@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\StringHelper;
 use App\Models\Assignee;
 use App\Models\Attachment;
 use App\Models\BoardList;
@@ -480,20 +481,6 @@ class ProjectsController extends Controller
     }
 
     /**
-     * Clean and format a string for use as a slug.
-     *
-     * @param string $string
-     * @return string
-     */
-    private function clean($string)
-    {
-        $string = str_replace(' ', '-', $string);
-        $string = preg_match("/[a-z]/i", $string) ? $string : 'untitled';
-        $string = preg_replace('/[^A-Za-z0-9\-]/', '', $string);
-        return preg_replace('/-+/', '-', $string);
-    }
-
-    /**
      * Get all projects.
      *
      * @return \Illuminate\Http\JsonResponse Returns a JSON response containing all projects.
@@ -528,7 +515,7 @@ class ProjectsController extends Controller
         $requests['user_id'] = auth()->id();
         $project = Project::create($requests);
 
-        $slug = $this->clean($project->title);
+        $slug = StringHelper::sanitizeForSlug($project->title);
         $existingItem = Project::where('slug', $slug)->first();
         if (!empty($existingItem)) {
             $slug = $slug . '-' . $project->id;
